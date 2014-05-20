@@ -82,6 +82,7 @@ struct option longopts[] =
   { "config_file", required_argument, NULL, 'f'},
   { "pid_file",    required_argument, NULL, 'i'},
   { "socket",      required_argument, NULL, 'z'},
+  { "vty_socket",  required_argument, NULL, 'x'},
   { "dryrun",      no_argument,       NULL, 'C'},
   { "help",        no_argument,       NULL, 'h'},
   { "vty_addr",    required_argument, NULL, 'A'},
@@ -101,6 +102,9 @@ struct thread_master *master;
 /* Process ID saved for use by init system */
 const char *pid_file = PATH_OSPFD_PID;
 
+/* ospf VTY socket path */
+const char *vty_socket = OSPF_VTYSH_PATH;
+
 #ifdef SUPPORT_OSPF_API
 extern int ospf_apiserver_enable;
 #endif /* SUPPORT_OSPF_API */
@@ -119,6 +123,7 @@ Daemon which manages OSPF.\n\n\
 -f, --config_file  Set configuration file name\n\
 -i, --pid_file     Set process identifier file name\n\
 -z, --socket       Set path of zebra socket\n\
+-x, --vty_socket   Set path of vty socket\n\
 -A, --vty_addr     Set vty's bind address\n\
 -P, --vty_port     Set vty's port number\n\
 -u, --user         User to run as\n\
@@ -203,7 +208,7 @@ main (int argc, char **argv)
     {
       int opt;
 
-      opt = getopt_long (argc, argv, "df:i:z:hA:P:u:g:avC", longopts, 0);
+      opt = getopt_long (argc, argv, "df:i:z:x:hA:P:u:g:avC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -226,6 +231,9 @@ main (int argc, char **argv)
           break;
 	case 'z':
 	  zclient_serv_path_set (optarg);
+	  break;
+	case 'x':
+	  vty_socket = optarg;
 	  break;
 	case 'P':
           /* Deal with atoi() returning 0 on failure, and ospfd not
@@ -328,7 +336,7 @@ main (int argc, char **argv)
   pid_output (pid_file);
 
   /* Create VTY socket */
-  vty_serv_sock (vty_addr, vty_port, OSPF_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_socket);
 
   /* Print banner. */
   zlog_notice ("OSPFd %s starting: vty@%d", QUAGGA_VERSION, vty_port);

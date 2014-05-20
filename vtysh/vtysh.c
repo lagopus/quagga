@@ -1787,23 +1787,23 @@ write_config_integrated(void)
   FILE *fp;
   char *integrate_sav = NULL;
 
-  integrate_sav = malloc (strlen (integrate_default) +
+  integrate_sav = malloc (strlen (integrate_config) +
 			  strlen (CONF_BACKUP_EXT) + 1);
-  strcpy (integrate_sav, integrate_default);
+  strcpy (integrate_sav, integrate_config);
   strcat (integrate_sav, CONF_BACKUP_EXT);
 
   fprintf (stdout,"Building Configuration...\n");
 
   /* Move current configuration file to backup config file. */
   unlink (integrate_sav);
-  rename (integrate_default, integrate_sav);
+  rename (integrate_config, integrate_sav);
   free (integrate_sav);
  
-  fp = fopen (integrate_default, "w");
+  fp = fopen (integrate_config, "w");
   if (fp == NULL)
     {
       fprintf (stdout,"%% Can't open configuration file %s.\n",
-	       integrate_default);
+	       integrate_config);
       return CMD_SUCCESS;
     }
 
@@ -1814,14 +1814,14 @@ write_config_integrated(void)
 
   fclose (fp);
 
-  if (chmod (integrate_default, CONFIGFILE_MASK) != 0)
+  if (chmod (integrate_config, CONFIGFILE_MASK) != 0)
     {
       fprintf (stdout,"%% Can't chmod configuration file %s: %s (%d)\n", 
-	integrate_default, safe_strerror(errno), errno);
+	integrate_config, safe_strerror(errno), errno);
       return CMD_WARNING;
     }
 
-  fprintf(stdout,"Integrated configuration saved to %s\n",integrate_default);
+  fprintf(stdout,"Integrated configuration saved to %s\n",integrate_config);
 
   fprintf (stdout,"[OK]\n");
 
@@ -2178,17 +2178,42 @@ vtysh_connect (struct vtysh_client *vclient)
 }
 
 int
-vtysh_connect_all(const char *daemon_name)
+vtysh_connect_all(const char *daemon_name, const char *vty_path)
 {
   u_int i;
   int rc = 0;
   int matches = 0;
+
+  char *daemon_vty_path = NULL;
 
   for (i = 0; i < array_size(vtysh_client); i++)
     {
       if (!daemon_name || !strcmp(daemon_name, vtysh_client[i].name))
 	{
 	  matches++;
+	  //realloc(vtysh_client[i].path, = vty_path;
+	  //printf ("VTYSH: %s\n", &vty_path[strlen(vty_path)-1]);
+	  //printf ("VTYSH: try the daemon: %s\n", vtysh_client[i].name);
+	  //printf ("VTYSH: allocate memory for daemon_vty: %u bytes\n", (strlen(vty_path) + strlen(vtysh_client[i].name)+6) );
+          
+	  /* 1 byte for "/"
+	   * 4 bytes for ".vty"
+	   * 1 byte for null
+	  */
+	  daemon_vty_path = realloc(daemon_vty_path, strlen(vty_path) + strlen(vtysh_client[i].name)+6);
+	  //memset(daemon_vty_path, 0, strlen(vty_path) + strlen(vtysh_client[i].name)+2);
+
+	  //printf ("VTYSH: copy %s to daemon_vty_path\n", vty_path);
+	  strcpy (daemon_vty_path, vty_path);
+	  if ( strcmp (&vty_path[strlen(vty_path)-1], "/" ) ) {
+	    strcat (daemon_vty_path, "/");
+	  }
+	  strcat (daemon_vty_path, vtysh_client[i].name);
+	  strcat (daemon_vty_path, ".vty");
+
+	  //printf ("VTYSH: daemon vty socket is : %s\n", daemon_vty_path);
+
+	  vtysh_client[i].path = daemon_vty_path;
 	  if (vtysh_connect(&vtysh_client[i]) == 0)
 	    rc++;
 	  /* We need direct access to ripd in vtysh_exit_ripd_only. */

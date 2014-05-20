@@ -57,6 +57,7 @@ static const struct option longopts[] =
   { "config_file", required_argument, NULL, 'f'},
   { "pid_file",    required_argument, NULL, 'i'},
   { "socket",      required_argument, NULL, 'z'},
+  { "vty_socket",  required_argument, NULL, 'x'},
   { "bgp_port",    required_argument, NULL, 'p'},
   { "listenon",    required_argument, NULL, 'l'},
   { "vty_addr",    required_argument, NULL, 'A'},
@@ -113,6 +114,9 @@ char *config_file = NULL;
 /* Process ID saved for use by init system */
 static const char *pid_file = PATH_BGPD_PID;
 
+/* bgpd VTY socket path */
+const char *vty_socket = BGP_VTYSH_PATH;
+
 /* VTY port number and address.  */
 int vty_port = BGP_VTY_PORT;
 char *vty_addr = NULL;
@@ -154,6 +158,7 @@ redistribution between different routing protocols.\n\n\
 -f, --config_file  Set configuration file name\n\
 -i, --pid_file     Set process identifier file name\n\
 -z, --socket       Set path of zebra socket\n\
+-x, --vty_socket   Set path of zebra vty socket\n\
 -p, --bgp_port     Set bgp protocol's port number\n\
 -l, --listenon     Listen on specified address (implies -n)\n\
 -A, --vty_addr     Set vty's bind address\n\
@@ -187,7 +192,7 @@ sighup (void)
   vty_read_config (config_file, config_default);
 
   /* Create VTY's socket */
-  vty_serv_sock (vty_addr, vty_port, BGP_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_socket);
 
   /* Try to return to normal operation. */
 }
@@ -343,7 +348,7 @@ main (int argc, char **argv)
   /* Command line argument treatment. */
   while (1) 
     {
-      opt = getopt_long (argc, argv, "df:i:z:hp:l:A:P:rnu:g:vC", longopts, 0);
+      opt = getopt_long (argc, argv, "df:i:z:x:hp:l:A:P:rnu:g:vC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -363,6 +368,9 @@ main (int argc, char **argv)
           break;
 	case 'z':
 	  zclient_serv_path_set (optarg);
+	  break;
+	case 'x':
+	  vty_socket = optarg;
 	  break;
 	case 'p':
 	  tmp_port = atoi (optarg);
@@ -450,7 +458,7 @@ main (int argc, char **argv)
   pid_output (pid_file);
 
   /* Make bgp vty socket. */
-  vty_serv_sock (vty_addr, vty_port, BGP_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_socket);
 
   /* Print banner. */
   zlog_notice ("BGPd %s starting: vty@%d, bgp@%s:%d", QUAGGA_VERSION,

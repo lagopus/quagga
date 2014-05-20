@@ -48,6 +48,7 @@ struct option longopts[] =
   { "config_file", required_argument, NULL, 'f'},
   { "pid_file",    required_argument, NULL, 'i'},
   { "socket",      required_argument, NULL, 'z'},
+  { "vty_socket",  required_argument, NULL, 'x'},
   { "dryrun",      no_argument,       NULL, 'C'},
   { "help",        no_argument,       NULL, 'h'},
   { "vty_addr",    required_argument, NULL, 'A'},
@@ -94,6 +95,9 @@ char *vty_addr = NULL;
 /* RIPng VTY connection port. */
 int vty_port = RIPNG_VTY_PORT;
 
+/* ripng VTY socket path */
+const char *vty_socket = RIPNG_VTYSH_PATH;
+
 /* Master of threads. */
 struct thread_master *master;
 
@@ -114,6 +118,7 @@ Daemon which manages RIPng.\n\n\
 -f, --config_file  Set configuration file name\n\
 -i, --pid_file     Set process identifier file name\n\
 -z, --socket       Set path of zebra socket\n\
+-x, --vty_socket   Set path of zebra socket\n\
 -A, --vty_addr     Set vty's bind address\n\
 -P, --vty_port     Set vty's port number\n\
 -r, --retain       When program terminates, retain added route by ripngd.\n\
@@ -139,7 +144,7 @@ sighup (void)
   /* Reload config file. */
   vty_read_config (config_file, config_default);
   /* Create VTY's socket */
-  vty_serv_sock (vty_addr, vty_port, RIPNG_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_socket);
 
   /* Try to return to normal operation. */
 }
@@ -207,7 +212,7 @@ main (int argc, char **argv)
     {
       int opt;
 
-      opt = getopt_long (argc, argv, "df:i:z:hA:P:u:g:vC", longopts, 0);
+      opt = getopt_long (argc, argv, "df:i:z:x:hA:P:u:g:vC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -230,6 +235,9 @@ main (int argc, char **argv)
           break;
 	case 'z':
 	  zclient_serv_path_set (optarg);
+	  break;
+	case 'x':
+	  vty_socket = optarg;
 	  break;
 	case 'P':
           /* Deal with atoi() returning 0 on failure, and ripngd not
@@ -297,7 +305,7 @@ main (int argc, char **argv)
     }
 
   /* Create VTY socket */
-  vty_serv_sock (vty_addr, vty_port, RIPNG_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_socket);
 
   /* Process id file create. */
   pid_output (pid_file);

@@ -43,6 +43,7 @@ static struct option longopts[] =
   { "config_file", required_argument, NULL, 'f'},
   { "pid_file",    required_argument, NULL, 'i'},
   { "socket",      required_argument, NULL, 'z'},
+  { "vty_socket",  required_argument, NULL, 'x'},
   { "help",        no_argument,       NULL, 'h'},
   { "dryrun",      no_argument,       NULL, 'C'},
   { "vty_addr",    required_argument, NULL, 'A'},
@@ -92,6 +93,9 @@ char *vty_addr = NULL;
 /* RIP VTY connection port. */
 int vty_port = RIP_VTY_PORT;
 
+/* rip VTY socket path */
+const char *vty_socket = RIP_VTYSH_PATH;
+
 /* Master of threads. */
 struct thread_master *master;
 
@@ -112,6 +116,7 @@ Daemon which manages RIP version 1 and 2.\n\n\
 -f, --config_file  Set configuration file name\n\
 -i, --pid_file     Set process identifier file name\n\
 -z, --socket       Set path of zebra socket\n\
+-x, --vty_socket   Set path of vty socket\n\
 -A, --vty_addr     Set vty's bind address\n\
 -P, --vty_port     Set vty's port number\n\
 -C, --dryrun       Check configuration for validity and exit\n\
@@ -140,7 +145,7 @@ sighup (void)
   vty_read_config (config_file, config_default);
 
   /* Create VTY's socket */
-  vty_serv_sock (vty_addr, vty_port, RIP_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_socket);
 
   /* Try to return to normal operation. */
 }
@@ -209,7 +214,7 @@ main (int argc, char **argv)
     {
       int opt;
 
-      opt = getopt_long (argc, argv, "df:i:z:hA:P:u:g:rvC", longopts, 0);
+      opt = getopt_long (argc, argv, "df:i:z:x:hA:P:u:g:rvC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -232,6 +237,9 @@ main (int argc, char **argv)
           break;
 	case 'z':
 	  zclient_serv_path_set (optarg);
+	  break;
+	case 'x':
+	  vty_socket = optarg;
 	  break;
 	case 'P':
           /* Deal with atoi() returning 0 on failure, and ripd not
@@ -305,7 +313,7 @@ main (int argc, char **argv)
   pid_output (pid_file);
 
   /* Create VTY's socket */
-  vty_serv_sock (vty_addr, vty_port, RIP_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_socket);
 
   /* Print banner. */
   zlog_notice ("RIPd %s starting: vty@%d", QUAGGA_VERSION, vty_port);

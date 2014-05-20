@@ -98,6 +98,9 @@ static char *babel_config_file = NULL;
 static char *babel_vty_addr = NULL;
 static int babel_vty_port = BABEL_VTY_PORT;
 
+/* babeld VTY socket path */
+const char *vty_socket = BABEL_VTYSH_PATH;
+
 /* Babeld options. */
 struct option longopts[] =
 {
@@ -105,6 +108,7 @@ struct option longopts[] =
     { "config_file", required_argument, NULL, 'f'},
     { "pid_file",    required_argument, NULL, 'i'},
     { "socket",      required_argument, NULL, 'z'},
+    { "vty_socket",  required_argument, NULL, 'x'},
     { "help",        no_argument,       NULL, 'h'},
     { "vty_addr",    required_argument, NULL, 'A'},
     { "vty_port",    required_argument, NULL, 'P'},
@@ -162,6 +166,7 @@ Daemon which manages Babel routing protocol.\n\n\
 -f, --config_file  Set configuration file name\n\
 -i, --pid_file     Set process identifier file name\n\
 -z, --socket       Set path of zebra socket\n\
+-x, --vty_socket   Set path of vty socket\n\
 -A, --vty_addr     Set vty's bind address\n\
 -P, --vty_port     Set vty's port number\n\
 -u, --user         User to run as\n\
@@ -200,7 +205,7 @@ babel_init(int argc, char **argv)
 
     /* get options */
     while(1) {
-        opt = getopt_long(argc, argv, "df:i:z:hA:P:u:g:v", longopts, 0);
+        opt = getopt_long(argc, argv, "df:i:z:x:hA:P:u:g:v", longopts, 0);
         if(opt < 0)
             break;
 
@@ -218,6 +223,9 @@ babel_init(int argc, char **argv)
                 break;
             case 'z':
                 zclient_serv_path_set (optarg);
+                break;
+            case 'x':
+                vty_socket = optarg;
                 break;
             case 'A':
                 babel_vty_addr = optarg;
@@ -282,7 +290,7 @@ babel_init(int argc, char **argv)
     vty_read_config (babel_config_file, babel_config_default);
 
     /* Create VTY socket */
-    vty_serv_sock (babel_vty_addr, babel_vty_port, BABEL_VTYSH_PATH);
+    vty_serv_sock (babel_vty_addr, babel_vty_port, vty_socket);
 
     /* init buffer */
     rc = resize_receive_buffer(1500);

@@ -39,7 +39,7 @@
 
 void vtysh_init_vty (void);
 void vtysh_init_cmd (void);
-extern int vtysh_connect_all (const char *optional_daemon_name);
+extern int vtysh_connect_all (const char *optional_daemon_name, const char *vty_path);
 void vtysh_readline_init (void);
 void vtysh_user_init (void);
 
@@ -67,4 +67,6 @@ extern int execute_flag;
 
 extern struct vty *vty;
 
+/* set the integrate config filename to be used by "write memory command" */
+extern const char *integrate_config;
 #endif /* VTYSH_H */

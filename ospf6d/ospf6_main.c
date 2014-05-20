@@ -80,6 +80,7 @@ struct option longopts[] =
   { "config_file", required_argument, NULL, 'f'},
   { "pid_file",    required_argument, NULL, 'i'},
   { "socket",      required_argument, NULL, 'z'},
+  { "vty_socket",  required_argument, NULL, 'x'},
   { "vty_addr",    required_argument, NULL, 'A'},
   { "vty_port",    required_argument, NULL, 'P'},
   { "user",        required_argument, NULL, 'u'},
@@ -105,6 +106,9 @@ struct thread_master *master;
 /* Process ID saved for use by init system */
 const char *pid_file = PATH_OSPF6D_PID;
 
+/* zebra VTY socket path */
+const char *vty_socket = OSPF6_VTYSH_PATH;
+
 /* Help information display. */
 static void
 usage (char *progname, int status)
@@ -119,6 +123,7 @@ Daemon which manages OSPF version 3.\n\n\
 -f, --config_file  Set configuration file name\n\
 -i, --pid_file     Set process identifier file name\n\
 -z, --socket       Set path of zebra socket\n\
+-x, --vty_socket   Set path of vty socket\n\
 -A, --vty_addr     Set vty's bind address\n\
 -P, --vty_port     Set vty's port number\n\
 -u, --user         User to run as\n\
@@ -240,7 +245,7 @@ main (int argc, char *argv[], char *envp[])
   /* Command line argument treatment. */
   while (1) 
     {
-      opt = getopt_long (argc, argv, "df:i:z:hp:A:P:u:g:vC", longopts, 0);
+      opt = getopt_long (argc, argv, "df:i:z:x:hp:A:P:u:g:vC", longopts, 0);
     
       if (opt == EOF)
         break;
@@ -263,6 +268,9 @@ main (int argc, char *argv[], char *envp[])
           break;
         case 'z':
           zclient_serv_path_set (optarg);
+          break;
+        case 'x':
+          vty_socket = optarg;
           break;
         case 'P':
          /* Deal with atoi() returning 0 on failure, and ospf6d not
@@ -344,7 +352,7 @@ main (int argc, char *argv[], char *envp[])
   /* Make ospf6 vty socket. */
   if (!vty_port)
     vty_port = OSPF6_VTY_PORT;
-  vty_serv_sock (vty_addr, vty_port, OSPF6_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_socket);
 
   /* Print start message */
   zlog_notice ("OSPF6d (Quagga-%s ospf6d-%s) starts: vty@%d",

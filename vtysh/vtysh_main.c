@@ -44,6 +44,9 @@ char *progname;
 char config_default[] = SYSCONFDIR VTYSH_DEFAULT_CONFIG;
 char history_file[MAXPATHLEN];
 
+/* set the integrate config filename to be used by "write memory command" */
+const char *integrate_config = NULL;
+
 /* Flag for indicate executing child command. */
 int execute_flag = 0;
 
@@ -141,6 +144,11 @@ usage (int status)
 	    "-b, --boot               Execute boot startup configuration\n" \
 	    "-c, --command            Execute argument as command\n" \
 	    "-d, --daemon             Connect only to the specified daemon\n" \
+	    "-f, --file               Integrate configuration file for boot startup\n" \
+	    "-g, --vty_file           VTYSH configuration file\n" \
+	    "-x, --vty_socket         Set vty socket path for daemon(s).\n" \
+	    "                         Be aware that is only the path not the socket.\n" \ 
+	    "                         The socket is compose from this socket path + daemon name + \".vty\" extension.\n" \ 
 	    "-E, --echo               Echo prompt and command in -c mode\n" \
 	    "-C, --dryrun             Check configuration for validity and exit\n" \
 	    "-h, --help               Display this help and exit\n\n" \
@@ -160,6 +168,9 @@ struct option longopts[] =
   { "eval",                 required_argument,       NULL, 'e'},
   { "command",              required_argument,       NULL, 'c'},
   { "daemon",               required_argument,       NULL, 'd'},
+  { "file",                 required_argument,       NULL, 'f'},
+  { "vty_file",             required_argument,       NULL, 'g'},
+  { "vty_socket",           required_argument,       NULL, 'x'},
   { "echo",                 no_argument,             NULL, 'E'},
   { "dryrun",		    no_argument,	     NULL, 'C'},
   { "help",                 no_argument,             NULL, 'h'},
@@ -219,6 +230,18 @@ main (int argc, char **argv, char **env)
   int dryrun = 0;
   int boot_flag = 0;
   const char *daemon_name = NULL;
+
+  /* for different instances you can use different vtysh configurantions files */
+  char *vty_config_file = NULL;
+  /* set the vtysh configuration to be the default one */
+  vty_config_file = config_default;
+
+  /* set integrate configuration to be the default one */
+  integrate_config = integrate_default;
+
+  /* set vtysh path for daemon(s) */
+  const char *vty_path = DAEMON_VTY_DIR;
+
   struct cmd_rec {
     const char *line;
     struct cmd_rec *next;
@@ -237,7 +260,7 @@ main (int argc, char **argv, char **env)
   /* Option handling. */
   while (1) 
     {
-      opt = getopt_long (argc, argv, "be:c:d:nEhC", longopts, 0);
+      opt = getopt_long (argc, argv, "be:c:d:f:g:x:nEhC", longopts, 0);
     
       if (opt == EOF)
 	break;
@@ -265,6 +288,15 @@ main (int argc, char **argv, char **env)
 	  break;
 	case 'd':
 	  daemon_name = optarg;
+	  break;
+	case 'f':
+	  integrate_config = optarg;
+	  break;
+	case 'g':
+	  vty_config_file = optarg;
+	  break;
+	case 'x':
+	  vty_path = optarg;
 	  break;
 	case 'n':
 	  no_error = 1;
@@ -300,7 +332,7 @@ main (int argc, char **argv, char **env)
   vty_init_vtysh ();
 
   /* Read vtysh configuration file before connecting to daemons. */
-  vtysh_read_config (config_default);
+  vtysh_read_config (vty_config_file);
 
   /* Start execution only if not in dry-run mode */
   if(dryrun)
@@ -314,7 +346,7 @@ main (int argc, char **argv, char **env)
   vtysh_auth ();
 
   /* Do not connect until we have passed authentication. */
-  if (vtysh_connect_all (daemon_name) <= 0)
+  if (vtysh_connect_all (daemon_name, vty_path) <= 0)
     {
       fprintf(stderr, "Exiting: failed to connect to any daemons.\n");
       exit(1);
@@ -377,10 +409,10 @@ main (int argc, char **argv, char **env)
   /* Boot startup configuration file. */
   if (boot_flag)
     {
-      if (vtysh_read_config (integrate_default))
+      if (vtysh_read_config (integrate_config))
 	{
 	  fprintf (stderr, "Can't open configuration file [%s]\n",
-		   integrate_default);
+		   integrate_config);
 	  exit (1);
 	}
       else

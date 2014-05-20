@@ -73,6 +73,7 @@ struct option longopts[] =
   { "config_file", required_argument, NULL, 'f'},
   { "pid_file",    required_argument, NULL, 'i'},
   { "socket",      required_argument, NULL, 'z'},
+  { "vty_socket",  required_argument, NULL, 'x'},
   { "help",        no_argument,       NULL, 'h'},
   { "vty_addr",    required_argument, NULL, 'A'},
   { "vty_port",    required_argument, NULL, 'P'},
@@ -115,6 +116,9 @@ char config_default[] = SYSCONFDIR DEFAULT_CONFIG_FILE;
 /* Process ID saved for use by init system */
 const char *pid_file = PATH_ZEBRA_PID;
 
+/* zebra VTY socket path */
+const char *vty_socket = ZEBRA_VTYSH_PATH;
+
 /* Help information display. */
 static void
 usage (char *progname, int status)
@@ -131,6 +135,7 @@ usage (char *progname, int status)
 	      "-f, --config_file  Set configuration file name\n"\
 	      "-i, --pid_file     Set process identifier file name\n"\
 	      "-z, --socket       Set path of zebra socket\n"\
+	      "-x, --vty_socket   Set path of zebra vty socket\n"\
 	      "-k, --keep_kernel  Don't delete old routes which installed by "\
 				  "zebra.\n"\
 	      "-C, --dryrun       Check configuration for validity and exit\n"\
@@ -233,9 +238,9 @@ main (int argc, char **argv)
       int opt;
   
 #ifdef HAVE_NETLINK  
-      opt = getopt_long (argc, argv, "bdkf:i:z:hA:P:ru:g:vs:C", longopts, 0);
+      opt = getopt_long (argc, argv, "bdkf:i:z:x:hA:P:ru:g:vs:C", longopts, 0);
 #else
-      opt = getopt_long (argc, argv, "bdkf:i:z:hA:P:ru:g:vC", longopts, 0);
+      opt = getopt_long (argc, argv, "bdkf:i:z:x:hA:P:ru:g:vC", longopts, 0);
 #endif /* HAVE_NETLINK */
 
       if (opt == EOF)
@@ -267,6 +272,9 @@ main (int argc, char **argv)
           break;
 	case 'z':
 	  zserv_path = optarg;
+	  break;
+	case 'x':
+	  vty_socket = optarg;
 	  break;
 	case 'P':
 	  /* Deal with atoi() returning 0 on failure, and zebra not
@@ -401,7 +409,7 @@ main (int argc, char **argv)
   zebra_zserv_socket_init (zserv_path);
 
   /* Make vty server socket. */
-  vty_serv_sock (vty_addr, vty_port, ZEBRA_VTYSH_PATH);
+  vty_serv_sock (vty_addr, vty_port, vty_socket);
 
   /* Print banner. */
   zlog_notice ("Zebra %s starting: vty@%d", QUAGGA_VERSION, vty_port);
