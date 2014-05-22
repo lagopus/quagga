@@ -66,6 +66,10 @@
 #include "ospfd/ospf_te.h"
 #endif /* HAVE_OSPF_TE */
 
+#ifdef HAVE_SR
+#include "ospfd/ospf_sr.h"
+#endif /* HAVE_SR */
+
 #ifdef SUPPORT_OSPF_API
 int ospf_apiserver_init (void);
 void ospf_apiserver_term (void); 
@@ -92,6 +96,11 @@ ospf_opaque_init (void)
     exit (1);
 #endif /* HAVE_OSPF_TE */
 
+#ifdef HAVE_SR
+  if (ospf_sr_init () != 0)
+    exit (1);
+#endif /* HAVE_SR */
+
 #ifdef SUPPORT_OSPF_API
   if ((ospf_apiserver_enable) && (ospf_apiserver_init () != 0))
     exit (1);
@@ -106,6 +115,10 @@ ospf_opaque_term (void)
 #ifdef HAVE_OSPF_TE
   ospf_mpls_te_term ();
 #endif /* HAVE_OSPF_TE */
+
+#ifdef HAVE_SR
+  ospf_sr_term ();
+#endif /* HAVE_SR */
 
 #ifdef SUPPORT_OSPF_API
   ospf_apiserver_term ();
@@ -219,6 +232,12 @@ ospf_opaque_type_name (u_char opaque_type)
       break;
     case OPAQUE_TYPE_GRACE_LSA:
       name = "Grace-LSA";
+      break;
+    case OPAQUE_TYPE_EXTENDED_PREFIX_LSA:
+      name = "Segment Routing Extended Prefix LSA";
+      break;
+    case OPAQUE_TYPE_EXTENDED_LINK_LSA:
+      name = "Segment Routing Extended Link LSA";
       break;
     default:
       if (OPAQUE_TYPE_RANGE_UNASSIGNED (opaque_type))

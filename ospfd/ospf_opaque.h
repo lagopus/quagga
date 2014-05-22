@@ -79,6 +79,8 @@
 #define OPAQUE_TYPE_GRACE_LSA				3
 
 /* Followings types are proposed in internet-draft documents. */
+#define OPAQUE_TYPE_EXTENDED_PREFIX_LSA 7 /* related to segment routing */
+#define OPAQUE_TYPE_EXTENDED_LINK_LSA   8 /* related to segment routing */
 #define OPAQUE_TYPE_8021_QOSPF				129
 #define OPAQUE_TYPE_SECONDARY_NEIGHBOR_DISCOVERY	224
 #define OPAQUE_TYPE_FLOODGATE                           225
