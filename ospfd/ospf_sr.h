@@ -47,7 +47,7 @@
  * +--------+--------+--------+--------+ ---
  * |   LS age        |Options |  10    |  A
  * +--------+--------+--------+--------+  |
- * | 7 or 8 |         Instance         |  |
+ * | 7 or 8 | NodeID |    Instance     |  |
  * +--------+--------+--------+--------+  |
  * |        Advertising router         |  |  Standard (Opaque) LSA header;
  * +--------+--------+--------+--------+  |  I-D also allows lsa type 9, 11
