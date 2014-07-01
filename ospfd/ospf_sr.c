@@ -169,28 +169,7 @@ void ospf_sr_show_info(struct vty *vty, struct ospf_lsa *lsa){
 int
 ospf_sr_init (void)
 {
-  int rc;
-
-  rc = ospf_register_opaque_functab (
-                OSPF_OPAQUE_AREA_LSA,
-                OPAQUE_TYPE_EXTENDED_PREFIX_LSA,
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                ospf_sr_config_write_router,
-                ospf_sr_config_write_if,
-                NULL,/* ospf_sr_config_write_debug */
-                ospf_sr_show_info,
-                ospf_sr_lsa_originate,
-                NULL,
-                ospf_sr_new_lsa_hook,
-                NULL /* ospf_sr_del_lsa_hook */);
-  if (rc != 0)
-    {
-      zlog_warn ("ospf_sr_init: Failed to register functions");
-      goto out;
-    }
+  int rc = 0;
 
   ospf_sr_register_vty ();
 
