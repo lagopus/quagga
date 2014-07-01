@@ -207,7 +207,7 @@ ospf_sr_lsa_body_set (struct stream *s, struct prefix prefix, int sid)
   sid_tlv.header.type = htons(SR_SUBTLV_PREFIX_SID);
   sid_tlv.header.length = htons(12);
   sid_tlv.range_size = htons(1);
-  sid_tlv.index = htons(sid);
+  sid_tlv.index = htonl(sid);
 
   prefix_tlv.header.type = htons(SR_TLV_EXTENDED_PREFIX);
   prefix_tlv.header.length = htons(8);
