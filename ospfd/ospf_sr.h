@@ -29,14 +29,13 @@
  *
  *        24       16        8        0
  * +--------+--------+--------+--------+
- * | 7 or 8 |  MBZ   |........|........|
+ * | 7 or 8 |........|........|........|
  * +--------+--------+--------+--------+
- * |<-Type->|<Resv'd>|<-- Instance --->|
+ * |<-Type->|<------- Instance ------->|
  *
  *
  * Type:      IANA has assigned '7' and '8' for Segment Routing.
- * MBZ:       Reserved, must be set to zero.
- * Instance:  User may select an arbitrary 16-bit value.
+ * Instance:  User may select an arbitrary 24-bit value.
  *
  */
 
