@@ -222,5 +222,7 @@ struct sr_subtlv_lan_adj_sid
 /* Prototypes. */
 extern int ospf_sr_init (void);
 extern void ospf_sr_term (void);
+extern void ospf_sr_config_write_router (struct vty *vty);
+extern void ospf_sr_config_write_if (struct vty *vty, struct interface *ifp);
 
 #endif /* _ZEBRA_OSPF_SR_H */

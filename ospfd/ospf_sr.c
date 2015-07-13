@@ -82,15 +82,14 @@ static struct ospf_sr OspfSR;
 
 static void ospf_sr_register_vty (void);
 
-static void ospf_sr_config_write_router (struct vty *vty);
-static void ospf_sr_config_write_if (struct vty *vty, struct interface *ifp);
 static void ospf_sr_show_info (struct vty *vty, struct ospf_lsa *lsa);
 static int ospf_sr_lsa_originate (void *arg);
 static int ospf_sr_new_lsa_hook(struct ospf_lsa *lsa);
 
 void ospf_sr_config_write_router(struct vty *vty){
-    zlog_info("config writer router called");
-    return;
+  if(OspfSR.status == enabled)
+    vty_out(vty, " segment-routing %d%s", OspfSR.nodeid, VTY_NEWLINE);
+  return;
 }
 
 void ospf_sr_config_write_if(struct vty *vty, struct interface *ifp){
@@ -171,6 +170,21 @@ ospf_sr_init (void)
 {
   int rc = 0;
 
+  rc = ospf_register_opaque_functab (
+                                     OSPF_OPAQUE_AREA_LSA,
+                                     OPAQUE_TYPE_EXTENDED_PREFIX_LSA,
+                                     NULL,
+                                     NULL,
+                                     NULL,
+                                     NULL,
+                                     ospf_sr_config_write_router,
+                                     ospf_sr_config_write_if,
+                                     NULL,/* ospf_sr_config_write_debug */
+                                     ospf_sr_show_info,
+                                     ospf_sr_lsa_originate,
+                                     NULL,
+                                     ospf_sr_new_lsa_hook,
+                                     NULL /* ospf_sr_del_lsa_hook */);
   ospf_sr_register_vty ();
 
 out:

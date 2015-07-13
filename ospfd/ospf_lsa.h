@@ -214,6 +214,9 @@ struct as_external_lsa
 #ifdef HAVE_OPAQUE_LSA
 #include "ospfd/ospf_opaque.h"
 #endif /* HAVE_OPAQUE_LSA */
+#ifdef HAVE_SR
+#include "ospfd/ospf_sr.h"
+#endif /* HAVE_SR */
 
 /* Macros. */
 #define GET_METRIC(x) get_metric(x)
